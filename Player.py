@@ -129,7 +129,7 @@ class player:
             if keys[pygame.K_SPACE] and self.jumped == False:
                 self.fallspeed = -15
                 self.jumped = True
-            if (math.degrees(self.anglerad) < 45) or (math.degrees(self.anglerad) > 315):
+            if (math.degrees(self.anglerad) > 45) or (math.degrees(self.anglerad) < 225):
                 self.movespeed += 0.125*math.sin(self.anglerad)
             if keys[pygame.K_LEFT] and self.lsidecollide == False:
                 if self.movespeed <= -self.maxspeed:
@@ -336,14 +336,21 @@ class player:
         :param point: the point affected if angle isn't 180/0 and one point is under the line"""
         if self.grounded == True:
             if self.lcheck[1] < self.rcheck[1]:
-               point[1] = self.lcheck[1]-self.lboffset[1]
-            elif self.rcheck[1] > self.lcheck[1]:
-                point[1] = self.rcheck[1]-self.rboffset[1]
-            yc = (self.lcheck[1]-self.rcheck[1])
-            xc = (self.lcheck[0]-self.rcheck[0])
-            self.anglerad = math.atan(yc/xc)
-            if self.anglerad < 0:
-                self.anglerad = 2*math.pi+self.anglerad
+               self.segmentget(self.lcheck,1,"positive")
+               point1 = self.lcheck
+               point2 = self.getcollidepoint(self.collidesegment,1,self.rboffset)
+            elif self.lcheck[1] >= self.rcheck[1]:
+               self.segmentget(self.rcheck,1,"positive")
+               point1 = self.getcollidepoint(self.collidesegment,1,self.lboffset)
+               point2 = self.rcheck
+            try:
+                yc = (point1[1]-point2[1])
+                xc = (point1[0]-point2[0])
+                self.anglerad = math.atan(yc/xc)
+                if self.anglerad < 0:
+                    self.anglerad = 2*math.pi+self.anglerad
+            except:
+                print("sfsafdsa")
             #select the groundmode for the player. This is needed for wall running.
             #the ordering is like this:
             #0: floor
@@ -416,7 +423,7 @@ class player:
             if self.debug:
                 pygame.draw.rect(self.layer, "#FFFF00", (self.intersectx-self.camera.pos[0],self.intersecty-self.camera.pos[1],5,5))
             return [self.intersectx, self.intersecty]
-                    
+            
     def segmentget(self, point, axis, polarity)->None:
         """Find the segment that will be checked for a given point.
         :param point: the point to be checked
